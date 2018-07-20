@@ -1,40 +1,27 @@
-var mongoose = require('mongoose');
+const express = require('express');
+const bodyParser = require('body-parser');
 
-mongoose.Promise = global.Promise;
+var {mongoose} = require('./db/mongoose');
+var {Todo} = require('./models/Todo');
+var {User} = require('./models/User');
+//var port = process.env.PORT;
 
-mongoose.connect('mongodb://127.0.0.1/Mongoose');
+var app = express();
 
-// Define a schema
-// todo : Name of the collection
-var Todo = mongoose.model('todo',{
-  text: {
-    type: String,
-    required: true,
-    minlength: 1,
-    trim: true
-  },
-  completed: {
-    type: Boolean,
-    default: false
-  },
-  completedAt: {
-    type: Number,
-    default: null
-  }
+app.use(bodyParser.json());  // returns the middleware that parses body (req.body) into json only where content-type matches json
+
+app.post('/todos', (req,res) => {
+  var todo = new Todo({
+    'text': req.body.text
+  });
+
+  todo.save().then((doc) => {
+    res.status(200).send(doc);
+  }, (err) => {
+    res.status(400).send(err);
+  });
 });
 
-var newTodo = new Todo({
-  text : 'Second Document',
-  completed : true,
-  completedAt : 123456
-});
-
-// var newTodo = new Todo({
-//   text : '    Second Document   ',
-// });
-
-newTodo.save().then((doc)=> {
-  console.log('Saved Doc',JSON.stringify(doc, undefined, 2));
-}, (err)=> {
-  console.log(`Unable to save \n${err}`);
+app.listen(3000, () => {
+  console.log(`Server started on port 3000`);
 });
